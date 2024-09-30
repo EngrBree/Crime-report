@@ -10,4 +10,9 @@ A new Flutter project.
 Git clone the project .
 Run :
 >>flutter pub get
->>flutter run 
+>>flutter run
+
+#app demo.
+##Screenshots 
+
+
