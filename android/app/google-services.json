@@ -1,0 +1,105 @@
+{
+  "project_info": {
+    "project_number": "586491120938",
+    "project_id": "citizens1-944a5",
+    "storage_bucket": "citizens1-944a5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:586491120938:android:9b600199c94e22bfa1e253",
+        "android_client_info": {
+          "package_name": "com.example.crime_report"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "586491120938-q74l5gc18p7lqmaqpr14s44qbmiolonu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrj9NAay0F6gvkgm6jyzlTZY-s3ihOUvw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "586491120938-q74l5gc18p7lqmaqpr14s44qbmiolonu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:586491120938:android:8011e71a3d75e821a1e253",
+        "android_client_info": {
+          "package_name": "com.example.crisis_management"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "586491120938-h2hmmv39i06cl2uo6dalv3tnakool5nf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.crisis_management",
+            "certificate_hash": "83343037230b77acef2fe39e8fe9b0606f82a54d"
+          }
+        },
+        {
+          "client_id": "586491120938-q74l5gc18p7lqmaqpr14s44qbmiolonu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrj9NAay0F6gvkgm6jyzlTZY-s3ihOUvw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "586491120938-q74l5gc18p7lqmaqpr14s44qbmiolonu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:586491120938:android:3ad758489e04e9b9a1e253",
+        "android_client_info": {
+          "package_name": "com.example.crisis_managements"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "586491120938-q74l5gc18p7lqmaqpr14s44qbmiolonu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrj9NAay0F6gvkgm6jyzlTZY-s3ihOUvw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "586491120938-q74l5gc18p7lqmaqpr14s44qbmiolonu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
