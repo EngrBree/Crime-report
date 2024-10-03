@@ -1,6 +1,39 @@
 import 'package:flutter/material.dart';
+import "../services/firebase_auth_service.dart";
 
-class ForgotPasswordPage extends StatelessWidget {
+class ForgotPasswordPage extends StatefulWidget {
+  @override
+  _ForgotPasswordPageState createState() => _ForgotPasswordPageState();
+}
+
+class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final FirebaseAuthService _authService = FirebaseAuthService();
+  String _message = '';
+
+  // Function to handle password reset
+  Future<void> _submitForgotPassword() async {
+    String email = _emailController.text.trim();
+
+    if (email.isEmpty) {
+      setState(() {
+        _message = 'Please enter your email';
+      });
+      return;
+    }
+
+    try {
+      await _authService.resetPassword(email);
+      setState(() {
+        _message = 'Password reset email has been sent to $email';
+      });
+    } catch (e) {
+      setState(() {
+        _message = 'Error: $e';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -8,7 +41,7 @@ class ForgotPasswordPage extends StatelessWidget {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            // Implement your back navigation
+            Navigator.pushReplacementNamed(context, '/login');
           },
         ),
         backgroundColor: Colors.white,
@@ -32,9 +65,10 @@ class ForgotPasswordPage extends StatelessWidget {
             ),
             SizedBox(height: 20),
             TextField(
+              controller: _emailController,
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.email),
-                hintText: 'Email ID/Phone number',
+                hintText: 'Email ID',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -44,9 +78,7 @@ class ForgotPasswordPage extends StatelessWidget {
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                // Implement your submit logic
-              },
+              onPressed: _submitForgotPassword,
               child: Text('Submit'),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.red, // Background color
@@ -54,9 +86,20 @@ class ForgotPasswordPage extends StatelessWidget {
               ),
             ),
             SizedBox(height: 10),
+            if (_message.isNotEmpty)
+              Text(
+                _message,
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            SizedBox(height: 10),
             TextButton(
               onPressed: () {
-                // Implement your back to login logic
+                Navigator.pushReplacementNamed(context, '/login');
               },
               child: Text(
                 'Back to login',
@@ -68,7 +111,7 @@ class ForgotPasswordPage extends StatelessWidget {
             ),
             Spacer(),
             Image.asset(
-              'assets/images/pic3.jpeg', // You need to have the corresponding asset image
+              'assets/images/pic3.jpeg', // Ensure you have this asset
               height: 200,
               fit: BoxFit.cover,
             ),

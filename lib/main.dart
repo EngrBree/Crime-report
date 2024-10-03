@@ -12,6 +12,7 @@ import "pages/messages.dart";
 import "pages/view_report.dart";
 import "pages/chat_overview.dart";
 import "pages/user_profile.dart";
+import "pages/forgot_pwd_screen.dart";
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,6 +48,7 @@ class MyApp extends StatelessWidget {
             ),
         '/search': (context) => SearchReportsPage(),
         '/user': (context) => UserProfilePage(),
+        '/forgot': (context) => ForgotPasswordPage(),
       },
     );
   }

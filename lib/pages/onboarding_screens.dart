@@ -165,8 +165,8 @@ class OnBoarding extends StatelessWidget {
                         '/login'); // Make sure the route is defined in your app
                   },
                   style: ElevatedButton.styleFrom(
-                    foregroundColor: Color.fromARGB(
-                        255, 87, 8, 2), // Red background color for the button
+                    foregroundColor:
+                        Color.fromARGB(255, 87, 8, 2), // Red button color
                     padding: EdgeInsets.symmetric(
                         horizontal: 40, vertical: 15), // Button padding
                     shape: RoundedRectangleBorder(
@@ -177,19 +177,17 @@ class OnBoarding extends StatelessWidget {
                     'Get Started',
                     style: TextStyle(
                       fontSize: 18,
-                      color: const Color.fromARGB(
-                          255, 3, 3, 3), // White text on the button
+                      color: const Color.fromARGB(255, 3, 3, 3), // Text color
                     ),
                   ),
                 ),
                 SizedBox(
-                    height: 50), // Spacing between the button and the image
+                    height: 30), // Spacing between the button and the image
                 // Bottom image
-                Expanded(
-                  child: Image.asset(
-                    'assets/images/pic3.jpeg', // Replace with the correct image for slide 3
-                    fit: BoxFit.cover,
-                  ),
+                Image.asset(
+                  'assets/images/pic3.jpeg', // Replace with the correct image for slide 3
+                  height: 200, // Adjust the height of the image
+                  fit: BoxFit.cover,
                 ),
               ],
             ),

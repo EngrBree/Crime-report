@@ -16,20 +16,30 @@ class _SearchReportsPageState extends State<SearchReportsPage> {
 
     // Update the query based on the input fields
     if (area.isNotEmpty) {
-      query = query.where('address', isEqualTo: area);
+      query = query.where('address', isEqualTo: area.toLowerCase());
     }
     if (crimeType.isNotEmpty) {
-      query = query.where('crimeType', isEqualTo: crimeType);
+      query = query.where('crimeType', isEqualTo: crimeType.toLowerCase());
     }
 
     try {
       QuerySnapshot snapshot = await query.get();
-      setState(() {
-        _reports = snapshot.docs; // Save the fetched reports
-      });
+      if (snapshot.docs.isNotEmpty) {
+        setState(() {
+          _reports = snapshot.docs;
+        });
+      } else {
+        // No reports found, clear the list
+        setState(() {
+          _reports = [];
+        });
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('No reports found')));
+      }
     } catch (e) {
       print('Error fetching reports: $e');
-      // Handle error (e.g., show an alert)
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error fetching reports')));
     }
   }
 

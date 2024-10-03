@@ -53,6 +53,7 @@ dependencies:
   cached_network_image: ^3.0.0
   flutter_spinkit: ^5.2.1
   rxdart: ^0.28.0
+  flutter_regex: ^0.0.3
 
   
 

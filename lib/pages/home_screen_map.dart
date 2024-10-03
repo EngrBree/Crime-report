@@ -206,12 +206,12 @@ class _MapPageState extends State<MapPage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.message,
-                color: Colors.red), // Location icon (Highlighted in red)
+                color: Colors.black), // Location icon (Highlighted in red)
             label: '',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_2_rounded,
-                color: Colors.red), // Location icon (Highlighted in red)
+                color: Colors.black), // Location icon (Highlighted in red)
             label: '',
           ),
         ],

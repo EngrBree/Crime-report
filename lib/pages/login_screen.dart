@@ -102,7 +102,7 @@ class _LoginScreenState extends State<SignInScreen> {
               // Forgot Password
               TextButton(
                 onPressed: () {
-                  // Navigate to forgot password screen or functionality
+                  Navigator.pushReplacementNamed(context, '/forgot');
                 },
                 child: Text(
                   'Forgot password?',

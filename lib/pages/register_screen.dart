@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import "../services/firebase_auth_service.dart";
+import '../services/firebase_auth_service.dart';
 
 class SignUpScreen extends StatefulWidget {
   @override
@@ -18,7 +18,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   final FirebaseAuthService _authService = FirebaseAuthService();
 
-  // Function to register user
+  // Function to validate the password strength
+  bool _isPasswordStrong(String password) {
+    final RegExp lowerCaseRegex = RegExp(r'[a-z]');
+    final RegExp numberRegex = RegExp(r'\d');
+    final RegExp specialCharRegex = RegExp(r'[!@#$%^&*(),.?":{}|<>]');
+
+    return password.length >= 8 &&
+        lowerCaseRegex.hasMatch(password) &&
+        numberRegex.hasMatch(password) &&
+        specialCharRegex.hasMatch(password);
+  }
+
+  // Function to register the user
   Future<void> _registerUser() async {
     String name = _nameController.text.trim();
     String email = _emailController.text.trim();
@@ -26,6 +38,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
     String confirmPassword = _confirmPasswordController.text.trim();
     String phone = _phoneController.text.trim();
 
+    // Check if all fields are filled
+    if (name.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty ||
+        phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("All fields are required!")),
+      );
+      return;
+    }
+
+    // Check if passwords match
     if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Passwords do not match!")),
@@ -33,6 +58,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
+    // Validate password strength
+    if (!_isPasswordStrong(password)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Password must be at least 8 characters long and include a lowercase letter, number, and special character.",
+          ),
+        ),
+      );
+      return;
+    }
+
+    // Attempt to register the user
     try {
       User? user = await _authService.signUpWithEmailAndPassword(
         name,
@@ -75,7 +113,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ),
               SizedBox(height: 30),
-              // Form fields here...
+
+              // Name field
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -86,6 +125,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
               ),
+              SizedBox(height: 20),
+
               // Email field
               TextField(
                 controller: _emailController,
@@ -163,6 +204,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                 ),
+              ),
+              SizedBox(height: 20),
+
+              // Sign In button for users who already have an account
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Already have an account?"),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/login');
+                    },
+                    child: Text(
+                      "Sign in",
+                      style: TextStyle(
+                        color: Colors.red[700],
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

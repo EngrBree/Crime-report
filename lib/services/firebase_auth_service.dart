@@ -99,4 +99,13 @@ class FirebaseAuthService {
   User? getCurrentUser() {
     return _auth.currentUser;
   }
+
+  // Function to reset password
+  Future<void> resetPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      throw e.message ?? "An unknown error occurred";
+    }
+  }
 }
