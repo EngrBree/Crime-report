@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:video_player/video_player.dart';
+import 'messages.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import "edit_report.dart";
 
 class ReportsPage extends StatelessWidget {
   Future<String> _getUsername(String userId) async {
@@ -20,6 +23,51 @@ class ReportsPage extends StatelessWidget {
       print("Error fetching username: $e");
       return 'Unknown User'; // Handle error by returning a default value
     }
+  }
+
+  // Helper widget to display image or video
+  Widget _buildMediaWidget(String mediaUrl) {
+    if (mediaUrl.isEmpty) {
+      return Container(); // No media to show
+    } else if (mediaUrl.endsWith('.mp4')) {
+      // Handle video
+      return VideoPlayerWidget(mediaUrl: mediaUrl);
+    } else {
+      // Handle image
+      return CachedNetworkImage(
+        imageUrl: mediaUrl,
+        placeholder: (context, url) => CircularProgressIndicator(),
+        errorWidget: (context, url, error) => Icon(Icons.error),
+        height: 250,
+        width: double.infinity,
+        fit: BoxFit.cover,
+      );
+    }
+  }
+
+  // Function to delete a report
+  void _deleteReport(String reportId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('reports')
+          .doc(reportId)
+          .delete();
+      print('Report deleted successfully.');
+    } catch (e) {
+      print('Error deleting report: $e');
+    }
+  }
+
+  // Function to navigate to the edit page
+  void _editReport(
+      BuildContext context, String reportId, Map<String, dynamic> reportData) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            EditReportPage(reportId: reportId, reportData: reportData),
+      ),
+    );
   }
 
   @override
@@ -46,7 +94,8 @@ class ReportsPage extends StatelessWidget {
               var report =
                   snapshot.data!.docs[index].data() as Map<String, dynamic>;
 
-              // Handle null values for report fields
+              String reportId =
+                  snapshot.data!.docs[index].id; // Get the document ID
               String userId = report['userId'] ?? '';
               String crimeType = report['crimeType'] ?? 'Unknown crime';
               String description = report['description'] ?? 'No description';
@@ -54,7 +103,6 @@ class ReportsPage extends StatelessWidget {
               String date = report['date'] ?? 'Unknown date';
               String time = report['time'] ?? 'Unknown time';
               String mediaUrl = report['mediaUrl'] ?? '';
-              String reportId = report['reportId'] ?? '';
 
               return FutureBuilder<String>(
                 future: _getUsername(userId),
@@ -66,6 +114,9 @@ class ReportsPage extends StatelessWidget {
                   }
 
                   String name = userSnapshot.data ?? 'Unknown User';
+
+                  String senderId =
+                      FirebaseAuth.instance.currentUser!.uid.trim();
 
                   return Card(
                     margin: EdgeInsets.all(8.0),
@@ -96,9 +147,49 @@ class ReportsPage extends StatelessWidget {
                             ],
                           ),
                         ),
-                        Divider(),
-                        _buildCommentsSection(reportId),
-                        _buildCommentInputField(reportId),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            // Show the message button only if the report sender is not the current user
+                            if (userId !=
+                                senderId) // Check to avoid messaging yourself
+                              IconButton(
+                                icon: Icon(Icons.message),
+                                onPressed: () {
+                                  String receiverId = userId;
+
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MessagingPage(
+                                        senderId: senderId,
+                                        receiverId: receiverId,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            // Show edit and delete buttons if the report belongs to the current user
+                            if (userId ==
+                                senderId) // Check if the report is the user's
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.edit),
+                                    onPressed: () {
+                                      _editReport(context, reportId, report);
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.delete),
+                                    onPressed: () {
+                                      _deleteReport(reportId);
+                                    },
+                                  ),
+                                ],
+                              ),
+                          ],
+                        ),
                       ],
                     ),
                   );
@@ -110,167 +201,65 @@ class ReportsPage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildMediaWidget(String mediaUrl) {
-    if (mediaUrl.isEmpty) {
-      return SizedBox.shrink(); // Handle empty media URL
-    }
+// VideoPlayer widget to handle video media
+class VideoPlayerWidget extends StatefulWidget {
+  final String mediaUrl;
 
-    if (mediaUrl.endsWith('.mp4')) {
-      return FutureBuilder<VideoPlayerController>(
-        future: _initializeVideoController(mediaUrl),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(
-                child: Text('Error loading video: ${snapshot.error}'));
-          } else if (snapshot.hasData && snapshot.data!.value.isInitialized) {
-            final controller = snapshot.data!;
-            return AspectRatio(
-              aspectRatio: controller.value.aspectRatio,
-              child: VideoPlayer(controller),
-            );
-          } else {
-            return Center(child: Text('Video not available'));
-          }
-        },
-      );
-    } else if (mediaUrl.endsWith('.jpg') || mediaUrl.endsWith('.png')) {
-      return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Image.network(
-          mediaUrl,
-          height: 300, // Ensure sufficient height
-          fit: BoxFit.cover, // Fit the image to the container
-          errorBuilder: (context, error, stackTrace) {
-            return Center(child: Text('Error loading image'));
-          },
-        ),
-      );
-    } else {
-      return SizedBox.shrink(); // Handle invalid media URL
-    }
-  }
+  VideoPlayerWidget({required this.mediaUrl});
 
-  Future<VideoPlayerController> _initializeVideoController(
-      String mediaUrl) async {
-    VideoPlayerController controller =
-        VideoPlayerController.networkUrl(Uri.parse(mediaUrl));
-    await controller.initialize();
-    return controller;
-  }
+  @override
+  _VideoPlayerWidgetState createState() => _VideoPlayerWidgetState();
+}
 
-  // Display comments section
-  Widget _buildCommentsSection(String reportId) {
-    if (reportId.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text('No comments available.'),
-      );
-    }
+class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
+  VideoPlayerController? _controller;
+  bool _isError = false;
 
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('reports')
-          .doc(reportId)
-          .collection('comments')
-          .orderBy('timestamp', descending: true)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+  @override
+  void initState() {
+    super.initState();
+
+    // Convert mediaUrl (String) to Uri for the new VideoPlayerController.networkUrl
+    _controller = VideoPlayerController.networkUrl(
+      Uri.parse(widget.mediaUrl),
+      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+    )..initialize().then((_) {
+        if (mounted) {
+          setState(() {
+            _isError = false;
+          });
+          _controller?.play();
         }
-
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text('No comments yet.'),
-          );
-        }
-
-        return Column(
-          children: snapshot.data!.docs.map((commentDoc) {
-            var comment = commentDoc.data() as Map<String, dynamic>;
-
-            // Handle null values in comments
-            String username = comment['username'] ?? 'Unknown User';
-            String text = comment['text'] ?? '';
-            Timestamp? timestamp = comment['timestamp'];
-
-            return ListTile(
-              title: Text(username),
-              subtitle: Text(text),
-              trailing: Text(
-                timestamp != null
-                    ? TimeOfDay.fromDateTime(timestamp.toDate()).format(context)
-                    : 'Unknown time',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            );
-          }).toList(),
-        );
-      },
-    );
-  }
-
-  // Comment input field
-  Widget _buildCommentInputField(String reportId) {
-    final TextEditingController _commentController = TextEditingController();
-
-    if (reportId.isEmpty) {
-      return SizedBox.shrink(); // Handle empty reportId
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _commentController,
-              decoration: InputDecoration(
-                hintText: 'Add a comment...',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-          IconButton(
-            icon: Icon(Icons.send),
-            onPressed: () {
-              if (_commentController.text.isNotEmpty) {
-                _postComment(reportId, _commentController.text);
-                _commentController.clear();
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Post comment to Firestore
-  Future<void> _postComment(String reportId, String commentText) async {
-    if (commentText.isEmpty || reportId.isEmpty) return; // Ensure valid input
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-
-      String username = userDoc['name'] ?? 'Unknown User';
-
-      FirebaseFirestore.instance
-          .collection('reports')
-          .doc(reportId)
-          .collection('comments')
-          .add({
-        'text': commentText,
-        'username': username,
-        'timestamp': FieldValue.serverTimestamp(),
+      }).catchError((error) {
+        print('Error initializing video: $error');
+        setState(() {
+          _isError = true;
+        });
       });
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isError) {
+      return Center(child: Text('Error loading video.'));
     }
+
+    return _controller != null && _controller!.value.isInitialized
+        ? AspectRatio(
+            aspectRatio: _controller!.value.aspectRatio,
+            child: VideoPlayer(_controller!),
+          )
+        : Center(child: CircularProgressIndicator());
   }
 }
+
+// EditReportPage to handle report editing
+

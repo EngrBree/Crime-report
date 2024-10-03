@@ -8,9 +8,10 @@ import "pages/login_screen.dart";
 import "pages/add_new_report.dart";
 import 'package:latlong2/latlong.dart'; // Needed for LatLng
 import "pages/search.dart";
-import "pages/menu.dart";
 import "pages/messages.dart";
 import "pages/view_report.dart";
+import "pages/chat_overview.dart";
+import "pages/user_profile.dart";
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +35,7 @@ class MyApp extends StatelessWidget {
         '/signup': (context) => SignUpScreen(),
         '/home': (context) => HomePage(),
         '/map': (context) => MapPage(),
+        '/chats': (context) => ChatOverviewPage(),
         '/report': (context) => CrimeRecordingPage(
               userLocation:
                   LatLng(-1.2921, 36.8219), // Nairobi as an example location
@@ -43,8 +45,8 @@ class MyApp extends StatelessWidget {
               senderId: '',
               receiverId: '',
             ),
-        '/search': (context) => SearchPage(),
-        '/menu': (context) => MenuPage(),
+        '/search': (context) => SearchReportsPage(),
+        '/user': (context) => UserProfilePage(),
       },
     );
   }

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'add_new_report.dart';
+import "search.dart";
 
 class MapPage extends StatefulWidget {
   @override
@@ -18,7 +20,28 @@ class _MapPageState extends State<MapPage> {
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
+    _requestLocationPermission();
+  }
+
+  Future<void> _requestLocationPermission() async {
+    var status = await Permission.locationWhenInUse.status;
+
+    if (status.isDenied) {
+      status = await Permission.locationWhenInUse.request();
+      if (status.isDenied) {
+        print("Location permission denied by the user.");
+        return;
+      }
+    }
+
+    if (status.isPermanentlyDenied) {
+      openAppSettings();
+      return;
+    }
+
+    if (status.isGranted) {
+      _getCurrentLocation();
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -54,7 +77,7 @@ class _MapPageState extends State<MapPage> {
       setState(() {
         _userLocation = LatLng(position.latitude, position.longitude);
         _mapController.move(_userLocation, 13.0);
-        _isLocationFetched = true; // Update flag
+        _isLocationFetched = true;
       });
     } catch (e) {
       print("Error fetching location: $e");
@@ -73,7 +96,14 @@ class _MapPageState extends State<MapPage> {
         break;
 
       case 1:
-        // Already on MapPage, no action needed
+        // Already on MapPage
+        break;
+
+      case 2:
+        Navigator.pushNamed(context, '/chats');
+        break;
+      case 3:
+        Navigator.pushNamed(context, '/user');
         break;
     }
   }
@@ -86,15 +116,12 @@ class _MapPageState extends State<MapPage> {
         title: Text('CRISIS MAP'),
         actions: [
           IconButton(
-            icon: Icon(Icons.tune), // Filters icon
-            onPressed: () {
-              // Handle filter action
-            },
-          ),
-          IconButton(
             icon: Icon(Icons.search), // Search icon
             onPressed: () {
-              // Handle search action
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SearchReportsPage()),
+              );
             },
           ),
         ],
@@ -174,6 +201,16 @@ class _MapPageState extends State<MapPage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.location_on,
+                color: Colors.red), // Location icon (Highlighted in red)
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.message,
+                color: Colors.red), // Location icon (Highlighted in red)
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_2_rounded,
                 color: Colors.red), // Location icon (Highlighted in red)
             label: '',
           ),

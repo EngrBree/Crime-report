@@ -6,41 +6,42 @@ import 'package:permission_handler/permission_handler.dart'; // For camera permi
 import 'package:latlong2/latlong.dart'; // To use LatLng
 import 'package:geocoding/geocoding.dart'; // Import geocoding package
 import 'package:video_player/video_player.dart'; // Import video player package
-import "../services/submit_report.dart";
-import "../services/select_crime.dart";
 import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
+import 'package:flutter_spinkit/flutter_spinkit.dart'; // For progress indicator
+import '../services/submit_report.dart';
+import '../services/select_crime.dart';
 
 class CrimeRecordingPage extends StatefulWidget {
-  final LatLng userLocation; // Add userLocation parameter
+  final LatLng userLocation;
 
-  CrimeRecordingPage({required this.userLocation}); // Constructor
+  CrimeRecordingPage({required this.userLocation});
 
   @override
   _CrimeRecordingPageState createState() => _CrimeRecordingPageState();
 }
 
 class _CrimeRecordingPageState extends State<CrimeRecordingPage> {
-  File? _mediaFile; // To hold the selected image or video
+  File? _mediaFile;
   final picker = ImagePicker();
-  bool isAnonymous = false; // Toggle for reporting as anonymous
-  String? name; // To hold the actual username
+  bool isAnonymous = false;
+  bool isSubmitting = false; // To track submission state
+  String? name;
   String _address = 'Fetching location...';
-  VideoPlayerController? _videoController; // Controller for video playback
-  String _selectedCrime = "Select a crime"; // To hold the selected crime
-
+  VideoPlayerController? _videoController;
+  String _selectedCrime = "Select a crime";
   TextEditingController _descriptionController = TextEditingController();
 
-  // Function to fetch the username
+  // Fetch username
   Future<void> _fetchUsername() async {
-    User? user = FirebaseAuth.instance.currentUser; // Get the current user
+    User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       setState(() {
-        name = user.displayName; // Set the username
+        name = user.displayName;
       });
     }
   }
 
-  // Function to show crime selection dialog
+  // Show crime selection dialog
   Future<void> _selectCrime() async {
     final List<String> crimes = CrimeService().getAvailableCrimes();
 
@@ -56,9 +57,9 @@ class _CrimeRecordingPageState extends State<CrimeRecordingPage> {
                   title: Text(crime),
                   onTap: () {
                     setState(() {
-                      _selectedCrime = crime; // Update the selected crime
+                      _selectedCrime = crime;
                     });
-                    Navigator.of(context).pop(); // Close the dialog
+                    Navigator.of(context).pop();
                   },
                 );
               }).toList(),
@@ -69,19 +70,58 @@ class _CrimeRecordingPageState extends State<CrimeRecordingPage> {
     );
   }
 
-  // Function to pick image/video from gallery
+  // Select image/video from gallery
   Future<void> _pickFromGallery() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _mediaFile = File(pickedFile.path);
-      });
-    }
+    // Show dialog to choose between image or video
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Select Media Type'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text('Select Image'),
+                onTap: () async {
+                  final pickedFile =
+                      await picker.pickImage(source: ImageSource.gallery);
+                  if (pickedFile != null) {
+                    setState(() {
+                      _mediaFile = File(pickedFile.path);
+                      _videoController?.dispose();
+                      _videoController = null;
+                    });
+                  }
+                  Navigator.of(context).pop();
+                },
+              ),
+              ListTile(
+                title: Text('Select Video'),
+                onTap: () async {
+                  final pickedFile =
+                      await picker.pickVideo(source: ImageSource.gallery);
+                  if (pickedFile != null) {
+                    setState(() {
+                      _mediaFile = File(pickedFile.path);
+                      _videoController = VideoPlayerController.file(_mediaFile!)
+                        ..initialize().then((_) {
+                          setState(() {});
+                        });
+                    });
+                  }
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
-  // Function to capture image/video from camera
+  // Capture media (image/video)
   Future<void> _captureMedia() async {
-    // Show a dialog to choose between image or video
     showDialog(
       context: context,
       builder: (context) {
@@ -98,13 +138,11 @@ class _CrimeRecordingPageState extends State<CrimeRecordingPage> {
                   if (pickedFile != null) {
                     setState(() {
                       _mediaFile = File(pickedFile.path);
-                      if (_videoController != null) {
-                        _videoController!.dispose();
-                        _videoController = null;
-                      }
+                      _videoController?.dispose();
+                      _videoController = null;
                     });
                   }
-                  Navigator.of(context).pop(); // Close the dialog
+                  Navigator.of(context).pop();
                 },
               ),
               ListTile(
@@ -117,11 +155,11 @@ class _CrimeRecordingPageState extends State<CrimeRecordingPage> {
                       _mediaFile = File(pickedFile.path);
                       _videoController = VideoPlayerController.file(_mediaFile!)
                         ..initialize().then((_) {
-                          setState(() {}); // Refresh to display the video
+                          setState(() {});
                         });
                     });
                   }
-                  Navigator.of(context).pop(); // Close the dialog
+                  Navigator.of(context).pop();
                 },
               ),
             ],
@@ -131,64 +169,68 @@ class _CrimeRecordingPageState extends State<CrimeRecordingPage> {
     );
   }
 
-  // Ask for camera permissions
+  // Cancel report and clear form
+  void _cancelReport() {
+    setState(() {
+      _mediaFile = null;
+      _selectedCrime = "Select a crime";
+      _descriptionController.clear();
+    });
+  }
+
+  // Request camera permissions
   Future<void> _requestPermissions() async {
     var status = await Permission.camera.status;
     if (status.isDenied) {
-      // Request permission if denied previously
       await Permission.camera.request();
     }
-    if (status.isGranted) {
-      // Permissions are granted
-    } else if (status.isPermanentlyDenied) {
-      // Show dialog to ask the user to enable from settings
+    if (status.isPermanentlyDenied) {
       await openAppSettings();
     }
   }
 
-  // Function to get address from coordinates
+  // Get address from coordinates
   Future<void> _getAddressFromLatLng(LatLng location) async {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
         location.latitude,
         location.longitude,
       );
-
       Placemark place = placemarks[0];
       setState(() {
         _address =
             "${place.street}, ${place.locality}, ${place.administrativeArea}, ${place.country}";
       });
     } catch (e) {
-      print(e);
       setState(() {
         _address = "Failed to get location";
       });
     }
   }
 
-  // Function to submit the report
+  // Submit report
   Future<void> _submitReport() async {
     String description = _descriptionController.text;
 
-    if (description.isEmpty || _selectedCrime == "Select a crime") {
-      // Show a message if the description is empty or crime is not selected
+    // Validate fields
+    if (description.isEmpty ||
+        _selectedCrime == "Select a crime" ||
+        _mediaFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('Please provide a description and select a crime')),
+        SnackBar(content: Text('Please fill in all fields and select media')),
       );
       return;
     }
 
-    try {
-      // Fetch the current user's ID
-      User? user = FirebaseAuth.instance.currentUser; // Get the current user
-      String userId = user?.uid ??
-          ''; // Get user ID or use an empty string if not authenticated
+    setState(() {
+      isSubmitting = true;
+    });
 
-      // Use the SubmitReportService to send the report
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      String userId = user?.uid ?? '';
       await SubmitReportService().submitReport(
-        userId: userId, // Include userId to track the report
+        userId: userId,
         name: isAnonymous ? 'Anonymous' : name ?? 'Unknown User',
         description: description,
         address: _address,
@@ -196,48 +238,41 @@ class _CrimeRecordingPageState extends State<CrimeRecordingPage> {
         time: DateFormat('HH:mm').format(DateTime.now()),
         location: widget.userLocation,
         mediaFile: _mediaFile,
-        crimeType: _selectedCrime, // Make sure to include this
+        crimeType: _selectedCrime,
         isAnonymous: isAnonymous,
       );
 
-      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Report submitted successfully')),
       );
-
-      // Optionally clear the form after submission
-      _descriptionController.clear();
-      setState(() {
-        _mediaFile = null;
-        _selectedCrime = "Select a crime"; // Reset crime selection
-      });
+      _cancelReport(); // Clear the form after submission
     } catch (e) {
-      // Handle errors (e.g., network issues)
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to submit report: $e')),
       );
+    } finally {
+      setState(() {
+        isSubmitting = false;
+      });
     }
   }
 
   @override
   void initState() {
     super.initState();
-    _requestPermissions(); // Request camera permissions on app startup
-    _fetchUsername(); // Fetch username from Firebase Auth
-    _getAddressFromLatLng(widget.userLocation); // Fetch the address
+    _requestPermissions();
+    _fetchUsername();
+    _getAddressFromLatLng(widget.userLocation);
   }
 
   @override
   void dispose() {
-    if (_videoController != null) {
-      _videoController!.dispose(); // Dispose the video controller
-    }
+    _videoController?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Get the current date and time
     String currentDate = DateFormat('EEE dd MMM yyyy').format(DateTime.now());
     String currentTime = DateFormat('HH:mm').format(DateTime.now());
 
@@ -250,7 +285,6 @@ class _CrimeRecordingPageState extends State<CrimeRecordingPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            // Location display
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
@@ -259,15 +293,13 @@ class _CrimeRecordingPageState extends State<CrimeRecordingPage> {
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      _address, // Display the dynamically fetched address
+                      _address,
                       style: TextStyle(fontSize: 16),
                     ),
                   ),
                 ],
               ),
             ),
-
-            // Date and Time display
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
@@ -275,97 +307,130 @@ class _CrimeRecordingPageState extends State<CrimeRecordingPage> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.calendar_today, color: Colors.grey),
-                      SizedBox(width: 8),
-                      Text(currentDate),
+                      Icon(Icons.calendar_today, color: Colors.red),
+                      SizedBox(width: 5),
+                      Text(currentDate, style: TextStyle(fontSize: 16)),
                     ],
                   ),
                   Row(
                     children: [
-                      Icon(Icons.access_time, color: Colors.grey),
-                      SizedBox(width: 8),
-                      Text(currentTime),
+                      Icon(Icons.access_time, color: Colors.red),
+                      SizedBox(width: 5),
+                      Text(currentTime, style: TextStyle(fontSize: 16)),
                     ],
                   ),
                 ],
               ),
             ),
-            // Select Crime Button
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: ElevatedButton(
-                onPressed: _selectCrime,
-                child: Text(_selectedCrime), // Display selected crime
+              child: GestureDetector(
+                onTap: _selectCrime,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.red),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(_selectedCrime, style: TextStyle(fontSize: 16)),
+                      Icon(Icons.arrow_drop_down, color: Colors.red),
+                    ],
+                  ),
+                ),
               ),
             ),
-            // Description Input Field
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: TextField(
                 controller: _descriptionController,
-                maxLines: 4,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  hintText: 'Description of the incident...',
+                  labelText: 'Description of the incident',
                 ),
+                maxLines: 4,
               ),
             ),
-            // Anonymous Checkbox
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Checkbox(
-                    value: isAnonymous,
-                    onChanged: (value) {
-                      setState(() {
-                        isAnonymous = value!;
-                      });
-                    },
-                  ),
-                  Text('Report anonymously'),
-                ],
-              ),
-            ),
-            // Media Selection Buttons
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
+                  ElevatedButton.icon(
                     onPressed: _pickFromGallery,
-                    child: Text('Select Media'),
+                    icon: Icon(Icons.photo),
+                    label: Text('Select Media'),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                    ),
                   ),
-                  ElevatedButton(
+                  ElevatedButton.icon(
                     onPressed: _captureMedia,
-                    child: Text('Capture Media'),
+                    icon: Icon(Icons.camera_alt),
+                    label: Text('Capture Media'),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                    ),
                   ),
                 ],
               ),
             ),
-            // Display selected media
-            if (_mediaFile != null) ...[
+            if (_mediaFile != null)
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: _mediaFile!.path.endsWith('.mp4')
-                    ? _videoController != null &&
-                            _videoController!.value.isInitialized
+                child: _videoController == null
+                    ? Image.file(_mediaFile!)
+                    : _videoController!.value.isInitialized
                         ? AspectRatio(
                             aspectRatio: _videoController!.value.aspectRatio,
                             child: VideoPlayer(_videoController!),
                           )
-                        : Container() // Placeholder while loading
-                    : Image.file(_mediaFile!), // Display selected image
+                        : CircularProgressIndicator(),
               ),
-            ],
-            // Submit Button
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: ElevatedButton(
-                  onPressed: _submitReport,
-                  child: Text('Submit Report'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: isAnonymous,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            isAnonymous = value!;
+                          });
+                        },
+                      ),
+                      Text('Report anonymously'),
+                    ],
+                  ),
+                  ElevatedButton(
+                    onPressed: _cancelReport,
+                    child: Text('Cancel'),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: ElevatedButton(
+                onPressed: isSubmitting ? null : _submitReport,
+                child: isSubmitting
+                    ? SpinKitThreeBounce(
+                        color: Colors.white,
+                        size: 20.0,
+                      )
+                    : Text('Submit Report'),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  padding: EdgeInsets.symmetric(vertical: 15),
+                  textStyle: TextStyle(fontSize: 18),
                 ),
               ),
             ),

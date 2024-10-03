@@ -1,134 +1,149 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import "package:crisis_management/widget/chat_bubble.dart";
+import 'package:rxdart/rxdart.dart';
 
-class MessagingPage extends StatefulWidget {
+class MessagingPage extends StatelessWidget {
   final String senderId;
   final String receiverId;
 
   MessagingPage({required this.senderId, required this.receiverId});
 
-  @override
-  _MessagingPageState createState() => _MessagingPageState();
-}
+  // Method to get the combined messages stream
+  Stream<List<QueryDocumentSnapshot>> _getMessages() {
+    // Stream for sent messages
+    final sentMessages = FirebaseFirestore.instance
+        .collection('messages')
+        .where('senderId', isEqualTo: senderId)
+        .where('receiverId', isEqualTo: receiverId)
+        .snapshots()
+        .map((snapshot) => snapshot.docs);
 
-class _MessagingPageState extends State<MessagingPage> {
-  final TextEditingController _messageController = TextEditingController();
-  String _receiverUsername = "Loading..."; // Placeholder for username
+    // Stream for received messages
+    final receivedMessages = FirebaseFirestore.instance
+        .collection('messages')
+        .where('senderId', isEqualTo: receiverId)
+        .where('receiverId', isEqualTo: senderId)
+        .snapshots()
+        .map((snapshot) => snapshot.docs);
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchUsername();
-  }
-
-  Future<void> _fetchUsername() async {
-    try {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.receiverId)
-          .get();
-
-      if (userDoc.exists && userDoc.data() != null) {
-        setState(() {
-          _receiverUsername = userDoc['name'] ?? "Unknown User";
-        });
-      }
-    } catch (e) {
-      print("Error fetching username: $e");
-      setState(() {
-        _receiverUsername = "Unknown User";
-      });
-    }
-  }
-
-  void _sendMessage() async {
-    if (_messageController.text.trim().isEmpty) return;
-
-    FirebaseFirestore.instance.collection('messages').add({
-      'text': _messageController.text,
-      'senderId': widget.senderId,
-      'receiverId': widget.receiverId,
-      'timestamp': Timestamp.now(),
-    });
-
-    _messageController.clear();
+    // Combine both streams
+    return Rx.combineLatest2(
+      sentMessages,
+      receivedMessages,
+      (List<QueryDocumentSnapshot> sent, List<QueryDocumentSnapshot> received) {
+        // Combine and sort both sent and received messages
+        return [...sent, ...received]..sort((a, b) {
+            Timestamp timeA = a['timestamp'] ?? Timestamp.now();
+            Timestamp timeB = b['timestamp'] ?? Timestamp.now();
+            return timeA.compareTo(timeB);
+          });
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chat with $_receiverUsername'), // Display the username
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context); // Go back to ChatOverviewPage
-          },
-        ),
+        title: Text('Chat'),
+        backgroundColor: Colors.red,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('messages')
-                  .where('senderId', isEqualTo: widget.senderId)
-                  .where('receiverId', isEqualTo: widget.receiverId)
-                  .orderBy('timestamp', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                // Check for connection state
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
+      body: StreamBuilder<List<QueryDocumentSnapshot>>(
+        stream: _getMessages(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
 
-                // Check for errors
-                if (snapshot.hasError) {
-                  return Center(child: Text("Error: ${snapshot.error}"));
-                }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('No messages found.'));
+          }
 
-                // Handle case where there are no messages
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(
-                      child: Text("No messages yet.")); // Handle no messages
-                }
+          return ListView.builder(
+            itemCount: snapshot.data!.length,
+            itemBuilder: (context, index) {
+              var message =
+                  snapshot.data![index].data() as Map<String, dynamic>;
+              String text = message['text'] ?? '';
+              String senderIdFromMessage = message['senderId'];
+              bool isMe = senderIdFromMessage ==
+                  senderId; // Check if the message is sent by the current user
 
-                final chatDocs = snapshot.data!.docs;
-
-                return ListView.builder(
-                  reverse: true,
-                  itemCount: chatDocs.length,
-                  itemBuilder: (context, index) {
-                    bool isSender =
-                        chatDocs[index]['senderId'] == widget.senderId;
-                    return isSender
-                        ? SenderBubble(message: chatDocs[index]['text'])
-                        : ReceiverBubble(message: chatDocs[index]['text']);
-                  },
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    decoration: InputDecoration(
-                      labelText: 'Send a message...',
-                      border: OutlineInputBorder(),
-                    ),
+              return Align(
+                alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                child: Container(
+                  margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isMe
+                        ? Colors.blueAccent
+                        : Colors.grey[
+                            300], // Different colors for sent and received messages
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    text,
+                    style: TextStyle(color: isMe ? Colors.white : Colors.black),
                   ),
                 ),
-                IconButton(
-                  icon: Icon(Icons.send),
-                  onPressed: _sendMessage,
+              );
+            },
+          );
+        },
+      ),
+      bottomNavigationBar:
+          _MessageInputField(senderId: senderId, receiverId: receiverId),
+    );
+  }
+}
+
+// Message Input Field for sending new messages
+class _MessageInputField extends StatefulWidget {
+  final String senderId;
+  final String receiverId;
+
+  _MessageInputField({required this.senderId, required this.receiverId});
+
+  @override
+  _MessageInputFieldState createState() => _MessageInputFieldState();
+}
+
+class _MessageInputFieldState extends State<_MessageInputField> {
+  final TextEditingController _messageController = TextEditingController();
+
+  void _sendMessage() async {
+    if (_messageController.text.isNotEmpty) {
+      await FirebaseFirestore.instance.collection('messages').add({
+        'senderId': widget.senderId,
+        'receiverId': widget.receiverId,
+        'text': _messageController.text,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      _messageController.clear();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _messageController,
+              decoration: InputDecoration(
+                hintText: 'Type your message...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
                 ),
-              ],
+              ),
             ),
+          ),
+          IconButton(
+            icon: Icon(Icons.send),
+            onPressed: _sendMessage,
           ),
         ],
       ),

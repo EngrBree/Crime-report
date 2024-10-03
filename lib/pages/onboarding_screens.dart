@@ -12,7 +12,6 @@ class OnBoarding extends StatelessWidget {
         headerBackgroundColor: Colors.white,
         skipTextButton: Text('Skip'),
         background: [
-          // Wrap each image in a container to set the background color
           Container(
             color: Colors.white,
             child: Image.asset('assets/images/pic1.jpeg'),
