@@ -87,7 +87,7 @@ A mobile app for reporting emergencies and incidents, providing location-based r
   ![Add New Report Video](https://drive.google.com/file/d/1KRVSwsh8Zcjh6VRU1AkswmhHdgE5XgaI/view?usp=drive_link)
 
 ### Step 4: Viewing a Report
-- **Description:** View detailed information about a reported incident, including the description, media, location, and status.
+- **Description:** View detailed information about a reported incident, including the description, media, location, and time the report was sent. The current user is able to view the reports of others as well as his owns. If the report is theirs they have the capability of deleting or editing the report if is from other users there is a message icon for them to comment or send text to the sender
 
   ![View Report Screenshot](assets/images/reports.mp4)
 
@@ -102,7 +102,7 @@ A mobile app for reporting emergencies and incidents, providing location-based r
   ![View All Chats Screenshot](assets/images/chats.mp4)
 
 ### Step 7: Viewing User Profile
-- **Description:** View and edit your profile or another user's profile, including the list of reports and messages sent.
+- **Description:** The users see their profile and they can log out
 
   ![User Profile Screenshot](assets/images/userProf.mp4)
 
@@ -112,11 +112,10 @@ A mobile app for reporting emergencies and incidents, providing location-based r
 
 Here are some of the key features demonstrated through images and videos:
 
-- **Home Screen:**  
-  ![Home Screen Image](assets/images/landingPage.mp4)
+- **The app demo:**  
+  ![live demo](assets/images/landingPage.mp4)
 
-- **Incident Reporting in Action:**  
-  ![Incident Reporting Video](path-to-your-incident-reporting-video.gif)
+
 
 ---
 
@@ -126,4 +125,3 @@ Distributed under the MIT License. See LICENSE for more information.
 
 ---
 
-This README is now streamlined and focused on the features you requested!
