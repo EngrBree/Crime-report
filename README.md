@@ -83,7 +83,7 @@ A mobile app for reporting emergencies and incidents, providing location-based r
 
   **Video Walkthrough:**
   
-  ![Add New Report Video](assets/images/addReport.mp4)
+  ![Add New Report Video](https://drive.google.com/file/d/1KRVSwsh8Zcjh6VRU1AkswmhHdgE5XgaI/view?usp=drive_link)
 
 ### Step 4: Viewing a Report
 - **Description:** View detailed information about a reported incident, including the description, media, location, and status.
