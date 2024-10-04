@@ -19,9 +19,9 @@ A mobile app for reporting emergencies and incidents, providing location-based r
 ## Features <a name="features"></a>
 - Crisis reporting with geolocation.
 - Upload images/videos for incident reports.
-- Comment and engage with other users' reports.
-- View and track the status of reported incidents (Resolved, In Progress, Pending).
-- User messaging and profile views.
+- View all the reports available in the app and can message the reporters
+- View all the messages from the users
+- Use profile and logout
 
 ---
 
@@ -66,10 +66,11 @@ A mobile app for reporting emergencies and incidents, providing location-based r
 ## Usage <a name="usage"></a>
 
 ### Landing Page
-- **Description:** Users land on this page, which provides an overview and access to login or sign-up.
+- **Description:** Users land on this page, which provides an overview and access to login
 
 ### Step 1: Sign Up / Login
 - **Description:** Users can create a new account or log in if they already have an account.
+
 
   ![Sign Up Screenshot](assets/images/registerUser.mp4)
 
