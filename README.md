@@ -37,7 +37,7 @@ A mobile app for reporting emergencies and incidents, providing location-based r
 1. **Clone the repository:**
     
     ```bash
-    git clone https://github.com/your-username/crisis-management-app.git
+    git clone https://github.com/EngrBree/Crime-report.git
     ```
 
 2. **Navigate to the project directory:**
