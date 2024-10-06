@@ -72,7 +72,7 @@ A mobile app for reporting emergencies and incidents, providing location-based r
 - **Description:** Users can create a new account or log in if they already have an account.
 
 
-  ![Sign Up Screenshot](assets/images/registerUser.mp4)
+  ![Sign Up Screenshot](assets/images/login.jpeg)
 
 ### Step 2: Home Dashboard
 - **Description:** Access the dashboard, view recent reports, and get quick access to reporting and messaging features.
@@ -84,27 +84,27 @@ A mobile app for reporting emergencies and incidents, providing location-based r
 
   **Video Walkthrough:**
   
-  ![Add New Report Video](https://drive.google.com/file/d/1KRVSwsh8Zcjh6VRU1AkswmhHdgE5XgaI/view?usp=drive_link)
+  ![Add New Report Video](assets/images/addReport.jpeg)
 
 ### Step 4: Viewing a Report
 - **Description:** View detailed information about a reported incident, including the description, media, location, and time the report was sent. The current user is able to view the reports of others as well as his owns. If the report is theirs they have the capability of deleting or editing the report if is from other users there is a message icon for them to comment or send text to the sender
 
-  ![View Report Screenshot](assets/images/reports.mp4)
+  ![View Report Screenshot](assets/images/reports.jpeg)
 
 ### Step 5: Adding a Message
 - **Description:** Send a message to the report owner or comment on the report.
 
-  ![Add Message Screenshot](path-to-your-message-image.png)
+  ![Add Message Screenshot](assets/images/chats.jpeg)
 
 ### Step 6: Viewing All Chats
 - **Description:** Access the list of all conversations with other users, whether about reports or private messaging.
 
-  ![View All Chats Screenshot](assets/images/chats.mp4)
+  ![View All Chats Screenshot](assets/images/messageS.mp4)
 
 ### Step 7: Viewing User Profile
 - **Description:** The users see their profile and they can log out
 
-  ![User Profile Screenshot](assets/images/userProf.mp4)
+  ![User Profile Screenshot](assets/images/user.jpeg)
 
 ---
 
@@ -113,7 +113,7 @@ A mobile app for reporting emergencies and incidents, providing location-based r
 Here are some of the key features demonstrated through images and videos:
 
 - **The app demo:**  
-  ![live demo](assets/images/landingPage.mp4)
+  ![live demo](assets/images/land.jpeg)
 
 
 
