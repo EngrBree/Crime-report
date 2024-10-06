@@ -99,7 +99,7 @@ A mobile app for reporting emergencies and incidents, providing location-based r
 ### Step 6: Viewing All Chats
 - **Description:** Access the list of all conversations with other users, whether about reports or private messaging.
 
-  ![View All Chats Screenshot](assets/images/messageS.mp4)
+  ![View All Chats Screenshot](assets/images/messageS.jpeg)
 
 ### Step 7: Viewing User Profile
 - **Description:** The users see their profile and they can log out
