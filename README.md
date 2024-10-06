@@ -65,8 +65,7 @@ A mobile app for reporting emergencies and incidents, providing location-based r
 
 ## Usage <a name="usage"></a>
 
-### Landing Page
-- **Description:** Users land on this page, which provides an overview and access to login
+
 
 ### Step 1: Sign Up / Login
 - **Description:** Users can create a new account or log in if they already have an account.
@@ -75,12 +74,12 @@ A mobile app for reporting emergencies and incidents, providing location-based r
   ![Sign Up Screenshot](assets/images/login.jpeg)
 
 ### Step 2: Home Dashboard
-- **Description:** Access the dashboard, view recent reports, and get quick access to reporting and messaging features.
+- **Description:** Access the dashboard, view recent reports, and get quick access to reporting and messaging features. It also shows the user exact location
 
   ![Home Dashboard Screenshot](assets/images/homePage.jpeg)
 
 ### Step 3: Adding a New Report
-- **Description:** Report an emergency by capturing or uploading a video/image, adding a description, and specifying the type of crisis.
+- **Description:** Report an emergency by capturing or uploading a video/image, adding a description, and specifying the type of crisis. They can also submit as ananonymous user
 
   **Video Walkthrough:**
   
@@ -110,10 +109,15 @@ A mobile app for reporting emergencies and incidents, providing location-based r
 
 ## Screenshots & Videos <a name="screenshots-videos"></a>
 
-Here are some of the key features demonstrated through images and videos:
+Here are other of the key features demonstrated through images and videos:
 
-- **The app demo:**  
-  ![live demo](assets/images/land.jpeg)
+- **The app demo: Landing Page**  
+  ![Landing Page](assets/images/land.jpeg)
+
+
+- **The app demo: Forgot Password Page**
+- - **Description:** The users input their email  then the message is sent to them and a link to reset the password
+ ![Landing Page](assets/images/forgot.jpeg) 
 
 
 
